@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div style="display: flex; justify-content: space-between; color: white">
+        <h2>My Board</h2>
+        <button
+          class="red"
+          style="width: 100px"
+          onclick="location.href='login.html'"
+        >
+          Logout
+        </button>
+      </div>
+
+      <!-- Add Task Input -->
+      <div
+        style="
+          background: white;
+          padding: 15px;
+          border-radius: 5px;
+          margin-bottom: 20px;
+          display: flex;
+          gap: 10px;
+        "
+      >
+        <input type="text" id="newTitle" placeholder="Enter Task Title..." />
+        <button onclick="addTask()" style="width: 150px">+ Add Task</button>
+      </div>
+
+      <!-- The Board -->
+      <div class="board">
+        <div class="column">
+          <h3>To Do</h3>
+          <div id="todo-list"></div>
+        </div>
+        <div class="column">
+          <h3>Doing</h3>
+          <div id="doing-list"></div>
+        </div>
+        <div class="column">
+          <h3>Done</h3>
+          <div id="done-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      loadTasks();
+
+      async function loadTasks() {
+        // Get Array from Server
+        const res = await fetch("/tasks");
+        const tasks = await res.json();
+
+        // Clear HTML
+        ["todo", "doing", "done"].forEach(
+          (id) => (document.getElementById(id + "-list").innerHTML = "")
+        );
+
+        // Render Cards
+        tasks.forEach((task) => {
+          const card = `
+                    <div class="card">
+                        <b onclick="location.href='details.html?id=${
+                          task.id
+                        }'">${task.title}</b>
+                        
+                        <!-- Dropdown to change status -->
+                        <select onchange="moveTask('${task.id}', '${
+            task.title
+          }', '${task.desc}', this.value)" style="background:#eee;">
+                            <option value="todo" ${
+                              task.status == "todo" ? "selected" : ""
+                            }>To Do</option>
+                            <option value="doing" ${
+                              task.status == "doing" ? "selected" : ""
+                            }>Doing</option>
+                            <option value="done" ${
+                              task.status == "done" ? "selected" : ""
+                            }>Done</option>
+                        </select>
+                    </div>
+                `;
+          document.getElementById(task.status + "-list").innerHTML += card;
+        });
+      }
+
+      async function addTask() {
+        const title = document.getElementById("newTitle").value;
+        if (!title) return;
+
+        await fetch("/save-task", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: null, title, desc: "", status: "todo" }),
+        });
+
+        document.getElementById("newTitle").value = "";
+        loadTasks();
+      }
+
+      async function moveTask(id, title, desc, status) {
+        await fetch("/save-task", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, title, desc, status }),
+        });
+        loadTasks(); // Refresh to move card
+      }
+    </script>
+  </body>
+</html>

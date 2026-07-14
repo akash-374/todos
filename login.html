@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Login</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="box">
+      <h2>Task Manager</h2>
+      <input type="text" id="email" placeholder="Email (admin)" />
+      <input type="password" id="pass" placeholder="Password (123)" />
+
+      <button onclick="auth('/login')">Login</button>
+      <button class="red" onclick="auth('/signup')">Signup</button>
+    </div>
+
+    <script>
+      async function auth(path) {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("pass").value;
+
+        const res = await fetch(path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          if (path === "/login") window.location.href = "dashboard.html";
+          else alert("Signup Success! Please Login.");
+        } else {
+          alert("Invalid Credentials");
+        }
+      }
+    </script>
+  </body>
+</html>

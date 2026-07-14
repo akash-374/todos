@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Edit Task</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="box">
+      <h3>Edit Task</h3>
+
+      <label>Title</label>
+      <input type="text" id="title" />
+
+      <label>Description</label>
+      <textarea id="desc" rows="5"></textarea>
+
+      <button onclick="save()">Save Changes</button>
+      <button class="red" onclick="del()">Delete Task</button>
+      <br /><br />
+      <a href="dashboard.html">Back</a>
+    </div>
+
+    <script>
+      const id = new URLSearchParams(window.location.search).get("id");
+      let currentStatus = "todo";
+
+      // Load specific task
+      fetch("/tasks")
+        .then((r) => r.json())
+        .then((tasks) => {
+          const task = tasks.find((t) => t.id == id);
+          if (task) {
+            document.getElementById("title").value = task.title;
+            document.getElementById("desc").value = task.desc;
+            currentStatus = task.status;
+          }
+        });
+
+      async function save() {
+        const title = document.getElementById("title").value;
+        const desc = document.getElementById("desc").value;
+
+        await fetch("/save-task", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, title, desc, status: currentStatus }),
+        });
+        window.location.href = "dashboard.html";
+      }
+
+      async function del() {
+        if (confirm("Delete?")) {
+          await fetch("/delete-task", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id }),
+          });
+          window.location.href = "dashboard.html";
+        }
+      }
+    </script>
+  </body>
+</html>
